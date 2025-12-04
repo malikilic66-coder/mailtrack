@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Footer from '@/components/Footer'
 import SiteHeader from '@/components/SiteHeader'
+import FlockingBackground from '@/components/FlockingBackground'
 import {
   ArrowRight,
   Sparkles,
@@ -71,6 +72,9 @@ const logHighlights = [
 export default function HomePage() {
   return (
     <div className="bg-[#f4f6fb] min-h-screen text-slate-900">
+      {/* Flocking Animation Background */}
+      <FlockingBackground />
+      
       <div className="relative">
         <div className="absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-white via-white/80 to-transparent" />
         <div className="absolute -top-32 right-10 w-72 h-72 bg-gradient-to-br from-indigo-200/40 via-white to-transparent rounded-full blur-3xl" />
