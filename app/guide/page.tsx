@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import ParticleCanvas from '@/components/ParticleCanvas'
+import Footer from '@/components/Footer'
 import { 
   CheckCircle,
   ArrowRight,
@@ -268,6 +269,8 @@ export default function GuidePage() {
           </a>
         </div>
       </section>
+
+      <Footer />
 
       <style jsx>{`
         @keyframes fadeInUp {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Footer from '@/components/Footer'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 
 export default function HomePage() {
@@ -311,6 +312,8 @@ export default function HomePage() {
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
       `}</style>
+
+      <Footer />
     </div>
   )
 }

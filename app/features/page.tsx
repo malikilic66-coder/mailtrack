@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import ParticleCanvas from '@/components/ParticleCanvas'
+import Footer from '@/components/Footer'
 import { 
   Bell, 
   Monitor, 
