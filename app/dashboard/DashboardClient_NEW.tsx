@@ -26,15 +26,7 @@ import {
   Home,
   Download,
   X,
-  ChevronRight,
-  Activity,
-  MapPin,
-  Monitor,
-  Smartphone,
-  Globe,
-  FileDown,
-  FileSpreadsheet,
-  FileJson
+  ChevronRight
 } from 'lucide-react'
 import CreateMailModal from '@/components/CreateMailModal'
 import MailDetailModal from '@/components/MailDetailModal'
@@ -58,18 +50,6 @@ interface MailItem {
     pixel_url: string
     pixel_code: string
   }>
-}
-
-interface ReadLog {
-  id: string
-  mail_id: string
-  read_at: string
-  ip_address: string | null
-  user_agent: string | null
-  location: string | null
-  mailtrack_mail_items?: {
-    title: string
-  }
 }
 
 interface Stats {
@@ -98,17 +78,10 @@ export default function DashboardClient({
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_read'>('newest')
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [selectedMailAction, setSelectedMailAction] = useState<string | null>(null)
-  const [recentActivity, setRecentActivity] = useState<ReadLog[]>([])
-  const [showActivityFeed, setShowActivityFeed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    // Load recent activity
-    loadRecentActivity()
-    
-    // Subscribe to realtime updates for read_logs
     const channel = supabase
       .channel('read_logs_changes')
       .on(
@@ -120,11 +93,7 @@ export default function DashboardClient({
           filter: `user_id=eq.${user.id}`
         },
         (payload: any) => {
-          // Refresh mail items when new read log is added
           refreshMailItems()
-          loadRecentActivity()
-          
-          // Show notification
           const mailId = payload.new?.mail_id
           const mail = mailItems.find(m => m.id === mailId)
           if (mail) {
@@ -140,50 +109,6 @@ export default function DashboardClient({
       supabase.removeChannel(channel)
     }
   }, [user.id, mailItems, supabase])
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // ⌘K or Ctrl+K for search
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement
-        searchInput?.focus()
-      }
-      // ⌘N or Ctrl+N for new mail
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-        e.preventDefault()
-        setShowCreateModal(true)
-      }
-      // Escape to close modals
-      if (e.key === 'Escape') {
-        setShowCreateModal(false)
-        setSelectedMail(null)
-        setShowActivityFeed(false)
-        setShowNotifications(false)
-        setShowFilterMenu(false)
-        setSelectedMailAction(null)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  const loadRecentActivity = async () => {
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    const { data } = await supabase
-      .from('mailtrack_read_logs')
-      .select('*, mailtrack_mail_items(title)')
-      .eq('user_id', user.id)
-      .gte('read_at', oneDayAgo)
-      .order('read_at', { ascending: false })
-      .limit(20)
-    
-    if (data) {
-      setRecentActivity(data as ReadLog[])
-    }
-  }
 
   const refreshMailItems = async () => {
     const { data } = await supabase
@@ -232,7 +157,6 @@ export default function DashboardClient({
   const getFilteredAndSortedMails = () => {
     let filtered = mailItems
 
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(mail =>
         mail.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -241,12 +165,10 @@ export default function DashboardClient({
       )
     }
 
-    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(mail => mail.status === statusFilter)
     }
 
-    // Sort
     const sorted = [...filtered]
     if (sortBy === 'newest') {
       sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -269,59 +191,6 @@ export default function DashboardClient({
     setShowCreateModal(false)
   }
 
-  const exportToCSV = () => {
-    const headers = ['Başlık', 'Alıcı', 'Konu', 'Durum', 'Okuma Sayısı', 'İlk Okuma', 'Oluşturulma']
-    const rows = mailItems.map(mail => [
-      mail.title,
-      mail.recipient_email || '-',
-      mail.mail_subject || '-',
-      mail.status === 'opened' ? 'Okundu' : 'Bekliyor',
-      mail.open_count,
-      mail.first_opened_at ? format(new Date(mail.first_opened_at), 'dd/MM/yyyy HH:mm', { locale: tr }) : '-',
-      format(new Date(mail.created_at), 'dd/MM/yyyy HH:mm', { locale: tr })
-    ])
-    
-    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `mailtrack-${format(new Date(), 'yyyy-MM-dd')}.csv`
-    link.click()
-    URL.revokeObjectURL(url)
-    addNotification('CSV dosyası indirildi!')
-  }
-
-  const exportToJSON = () => {
-    const data = mailItems.map(mail => ({
-      title: mail.title,
-      recipient_email: mail.recipient_email,
-      recipient_name: mail.recipient_name,
-      mail_subject: mail.mail_subject,
-      status: mail.status,
-      open_count: mail.open_count,
-      first_opened_at: mail.first_opened_at,
-      created_at: mail.created_at,
-      pixel_code: mail.mailtrack_tracking_pixels[0]?.pixel_code
-    }))
-    
-    const json = JSON.stringify(data, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `mailtrack-${format(new Date(), 'yyyy-MM-dd')}.json`
-    link.click()
-    URL.revokeObjectURL(url)
-    addNotification('JSON dosyası indirildi!')
-  }
-
-  const getDeviceIcon = (userAgent: string | null) => {
-    if (!userAgent) return <Monitor className="h-4 w-4" />
-    if (userAgent.toLowerCase().includes('mobile')) return <Smartphone className="h-4 w-4" />
-    return <Monitor className="h-4 w-4" />
-  }
-
   const getStatusIcon = (status: string) => {
     if (status === 'opened') {
       return <CheckCircle className="w-5 h-5 text-green-500" />
@@ -329,27 +198,7 @@ export default function DashboardClient({
     return <Circle className="w-5 h-5 text-gray-400" />
   }
 
-  const MailCardSkeleton = () => (
-    <div className="w-full rounded-3xl border border-white/60 bg-white/80 p-5 animate-pulse">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 items-start gap-3">
-          <div className="h-5 w-5 rounded-full bg-slate-200" />
-          <div className="flex-1 space-y-3">
-            <div className="h-5 w-3/4 rounded-lg bg-slate-200" />
-            <div className="flex gap-2">
-              <div className="h-6 w-24 rounded-full bg-slate-100" />
-              <div className="h-6 w-32 rounded-full bg-slate-100" />
-            </div>
-            <div className="h-3 w-48 rounded bg-slate-100" />
-          </div>
-        </div>
-        <div className="flex gap-6">
-          <div className="h-16 w-20 rounded-2xl bg-slate-100" />
-          <div className="h-16 w-24 rounded-xl bg-slate-50" />
-        </div>
-      </div>
-    </div>
-  )
+  const filteredMails = getFilteredAndSortedMails()
 
   return (
     <div className="bg-[#f4f6fb] min-h-screen text-slate-900">
@@ -381,7 +230,6 @@ export default function DashboardClient({
               </div>
               
               <div className="flex flex-wrap items-center gap-3">
-                {/* Notification Center */}
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
@@ -429,7 +277,6 @@ export default function DashboardClient({
                   )}
                 </div>
 
-                {/* User Menu */}
                 <div className="flex items-center gap-3 rounded-[28px] border border-white/60 bg-white/80 px-3 py-2 shadow-[0_12px_45px_rgba(15,23,42,0.12)]">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
                     {user.email?.charAt(0).toUpperCase()}
@@ -509,54 +356,14 @@ export default function DashboardClient({
                   <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Mail İzlemelerim</p>
                   <h2 className="mt-2 text-2xl font-semibold text-slate-900">Görünmez pixel log akışı</h2>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowActivityFeed(!showActivityFeed)}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      <Activity className="h-4 w-4" />
-                      Aktivite
-                      {recentActivity.length > 0 && (
-                        <span className="ml-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs text-white">
-                          {recentActivity.length}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                  <div className="relative group">
-                    <button className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                      <Download className="h-4 w-4" />
-                      Export
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                    <div className="absolute right-0 top-12 w-48 rounded-2xl border border-white/70 bg-white p-2 shadow-[0_20px_60px_rgba(15,23,42,0.15)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50">
-                      <button
-                        onClick={exportToCSV}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        CSV İndir
-                      </button>
-                      <button
-                        onClick={exportToJSON}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                      >
-                        <FileJson className="h-4 w-4" />
-                        JSON İndir
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5"
-                  >
-                    <Plus className="w-4 h-4" /> Yeni İzleme
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5"
+                >
+                  <Plus className="w-4 h-4" /> Yeni İzleme
+                </button>
               </div>
 
-              {/* Search and Filter Controls */}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -564,17 +371,9 @@ export default function DashboardClient({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Mail ara... (⌘K)"
+                    placeholder="Mail ara (başlık, alıcı, konu...)"
                     className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                   />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
                 </div>
                 
                 <div className="flex gap-2">
@@ -644,55 +443,20 @@ export default function DashboardClient({
               </div>
 
               {mailItems.length === 0 ? (
-                <div className="mt-12 rounded-[30px] border border-slate-200 bg-white/90 p-10">
-                  <div className="text-center mb-8">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-gradient-to-br from-blue-50 to-white">
-                      <Mail className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <h3 className="mt-6 text-2xl font-semibold text-slate-900">MailSight'a Hoş Geldiniz!</h3>
-                    <p className="mt-2 text-sm text-slate-500">Görünmez pixel ile mail izlemeye başlamak için aşağıdaki adımları takip edin.</p>
+                <div className="mt-12 rounded-[30px] border border-dashed border-slate-200 bg-slate-50/80 p-10 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white/80">
+                    <Mail className="h-6 w-6 text-slate-400" />
                   </div>
-
-                  <div className="grid gap-4 md:grid-cols-3 mb-8">
-                    <div className="rounded-2xl border border-slate-100 bg-white p-6">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-50 to-white mb-4">
-                        <span className="text-lg font-bold text-green-600">1</span>
-                      </div>
-                      <h4 className="font-semibold text-slate-900 mb-2">İzleme Oluştur</h4>
-                      <p className="text-xs text-slate-500">Yeni bir mail izlemesi oluşturun ve pixel kodunu alın.</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-100 bg-white p-6">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-white mb-4">
-                        <span className="text-lg font-bold text-blue-600">2</span>
-                      </div>
-                      <h4 className="font-semibold text-slate-900 mb-2">Pixel Ekle</h4>
-                      <p className="text-xs text-slate-500">HTML mail şablonunuza görünmez pixel kodunu yapıştırın.</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-100 bg-white p-6">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-white mb-4">
-                        <span className="text-lg font-bold text-purple-600">3</span>
-                      </div>
-                      <h4 className="font-semibold text-slate-900 mb-2">Takip Et</h4>
-                      <p className="text-xs text-slate-500">Gerçek zamanlı bildirimlerle maillerinizin açılmasını izleyin.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5"
-                    >
-                      <Plus className="w-4 h-4" /> İlk İzlemeyi Oluştur
-                    </button>
-                    <a
-                      href="/guide"
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      📚 Kullanım Kılavuzu
-                    </a>
-                  </div>
+                  <h3 className="mt-6 text-xl font-semibold text-slate-900">Henüz mail izlemeniz yok</h3>
+                  <p className="mt-2 text-sm text-slate-500">İlk görünmez pikselinizi oluşturarak başlayın.</p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    <Plus className="w-4 h-4" /> Yeni İzleme Oluştur
+                  </button>
                 </div>
-              ) : getFilteredAndSortedMails().length === 0 ? (
+              ) : filteredMails.length === 0 ? (
                 <div className="mt-12 rounded-[30px] border border-dashed border-slate-200 bg-slate-50/80 p-10 text-center">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white/80">
                     <Search className="h-6 w-6 text-slate-400" />
@@ -702,14 +466,7 @@ export default function DashboardClient({
                 </div>
               ) : (
                 <div className="mt-8 space-y-4">
-                  {isLoading ? (
-                    <>
-                      <MailCardSkeleton />
-                      <MailCardSkeleton />
-                      <MailCardSkeleton />
-                    </>
-                  ) : (
-                    getFilteredAndSortedMails().map((mail) => (
+                  {filteredMails.map((mail) => (
                     <div
                       key={mail.id}
                       className="group relative w-full rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_12px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
@@ -732,7 +489,7 @@ export default function DashboardClient({
                                 )}
                                 {mail.mail_subject && (
                                   <span className="rounded-full bg-white/90 px-3 py-1 text-slate-500">
-                                    “{mail.mail_subject}”
+                                    "{mail.mail_subject}"
                                   </span>
                                 )}
                               </div>
@@ -808,8 +565,7 @@ export default function DashboardClient({
                         </div>
                       </div>
                     </div>
-                    ))
-                  )}
+                  ))}
                 </div>
               )}
             </section>
@@ -817,7 +573,6 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* Modals */}
       {showCreateModal && (
         <CreateMailModal
           userId={user.id}
@@ -831,86 +586,6 @@ export default function DashboardClient({
           mail={selectedMail}
           onClose={() => setSelectedMail(null)}
         />
-      )}
-
-      {/* Activity Feed Modal */}
-      {showActivityFeed && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
-          onClick={() => setShowActivityFeed(false)}
-        >
-          <div
-            className="relative w-full max-w-2xl rounded-[32px] border border-white/70 bg-white/95 p-8 shadow-[0_40px_120px_rgba(15,23,42,0.3)] backdrop-blur max-h-[80vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-900">Aktivite Akışı</h2>
-                <p className="mt-1 text-sm text-slate-500">Son 24 saatteki okuma aktiviteleri</p>
-              </div>
-              <button
-                onClick={() => setShowActivityFeed(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-3">
-              {recentActivity.length === 0 ? (
-                <div className="py-12 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
-                    <Activity className="h-6 w-6 text-slate-400" />
-                  </div>
-                  <h3 className="mt-4 text-lg font-semibold text-slate-900">Henüz aktivite yok</h3>
-                  <p className="mt-2 text-sm text-slate-500">Son 24 saatte hiç mail açılmamış.</p>
-                </div>
-              ) : (
-                recentActivity.map((log) => (
-                  <div
-                    key={log.id}
-                    className="rounded-2xl border border-slate-100 bg-white p-4 transition hover:shadow-md"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-white">
-                        <Mail className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-slate-900">
-                          {log.mailtrack_mail_items?.title || 'Mail okundu'}
-                        </h4>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(new Date(log.read_at), 'HH:mm', { locale: tr })}
-                          </span>
-                          {log.ip_address && (
-                            <span className="inline-flex items-center gap-1">
-                              <Globe className="h-3 w-3" />
-                              {log.ip_address}
-                            </span>
-                          )}
-                          {log.location && (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {log.location}
-                            </span>
-                          )}
-                          {log.user_agent && (
-                            <span className="inline-flex items-center gap-1">
-                              {getDeviceIcon(log.user_agent)}
-                              {log.user_agent.includes('Mobile') ? 'Mobil' : 'Masaüstü'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
       )}
     </div>
   )
