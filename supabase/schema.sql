@@ -63,9 +63,16 @@ CREATE POLICY "Users can view tracking logs for their emails"
     );
 
 -- Allow the service role to insert tracking logs (for the backend)
+-- The backend validates that email_id exists before inserting
+-- This policy requires that the email_id references a valid email
 CREATE POLICY "Service role can insert tracking logs"
     ON tracking_logs FOR INSERT
-    WITH CHECK (true);
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM emails
+            WHERE emails.id = email_id
+        )
+    );
 
 -- Enable realtime for tracking_logs
 ALTER PUBLICATION supabase_realtime ADD TABLE tracking_logs;

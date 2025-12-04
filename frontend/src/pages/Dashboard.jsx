@@ -65,11 +65,11 @@ export default function Dashboard() {
   // Data loading effect - this is the recommended pattern for fetching data
   useEffect(() => {
     if (user) {
-      // These functions set state asynchronously after fetching data
-      // which is the standard React pattern for data fetching
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      void loadEmails(user.id)
-      void loadTrackingLogs(user.id)
+      // Using IIFE to properly handle async operations in useEffect
+      (async () => {
+        await loadEmails(user.id)
+        await loadTrackingLogs(user.id)
+      })()
     }
   }, [user, loadEmails, loadTrackingLogs])
 

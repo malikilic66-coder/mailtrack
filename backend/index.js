@@ -41,6 +41,9 @@ app.get('/track/:emailId', async (req, res) => {
   }
 
   // Get client IP address
+  // Note: x-forwarded-for can be spoofed. In production, use a trusted proxy 
+  // and configure Express to trust the proxy (app.set('trust proxy', true))
+  // This IP is for analytics only and not used for security decisions
   const ipAddress = req.headers['x-forwarded-for']?.split(',')[0]?.trim() 
     || req.socket?.remoteAddress 
     || 'unknown'
@@ -49,7 +52,7 @@ app.get('/track/:emailId', async (req, res) => {
   const userAgent = req.headers['user-agent'] || 'unknown'
 
   try {
-    // Check if email exists
+    // Check if email exists before logging - this validates the email_id
     const { data: email, error: emailError } = await supabase
       .from('emails')
       .select('id')
