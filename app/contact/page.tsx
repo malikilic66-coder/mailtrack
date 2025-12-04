@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import ParticleCanvas from '@/components/ParticleCanvas'
 import Footer from '@/components/Footer'
+import SiteHeader from '@/components/SiteHeader'
 import { Mail, MessageSquare, Github, Send, Clock, MapPin } from 'lucide-react'
 import { useState } from 'react'
 
@@ -13,7 +12,8 @@ const contactMethods = [
     description: 'En hızlı yanıt yolu',
     value: 'support@mailsight.com',
     action: 'mailto:support@mailsight.com',
-    color: 'blue'
+    bgClass: 'bg-emerald-50 border border-emerald-100',
+    textClass: 'text-emerald-600'
   },
   {
     icon: Github,
@@ -21,7 +21,8 @@ const contactMethods = [
     description: 'Bug report & feature request',
     value: 'github.com/mailsight',
     action: 'https://github.com',
-    color: 'gray'
+    bgClass: 'bg-slate-50 border border-slate-200',
+    textClass: 'text-slate-600'
   },
   {
     icon: MessageSquare,
@@ -29,7 +30,8 @@ const contactMethods = [
     description: 'Aşağıdaki formu doldurun',
     value: 'Detaylı sorular için',
     action: '#form',
-    color: 'green'
+    bgClass: 'bg-blue-50 border border-blue-100',
+    textClass: 'text-blue-600'
   }
 ]
 
@@ -44,11 +46,10 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Simulate form submission
-    const mailtoLink = `mailto:support@mailsight.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`İsim: ${formData.name}\nE-posta: ${formData.email}\n\n${formData.message}`)}`
+    const mailtoLink = `mailto:support@mailsight.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+      `İsim: ${formData.name}\nE-posta: ${formData.email}\n\n${formData.message}`
+    )}`
     window.location.href = mailtoLink
-    
     setSubmitted(true)
     setTimeout(() => setSubmitted(false), 3000)
   }
@@ -61,229 +62,160 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
-      <ParticleCanvas />
+    <div className="bg-[#f4f6fb] min-h-screen text-slate-900">
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-[320px] bg-gradient-to-b from-white via-white/80 to-transparent" />
+        <div className="absolute -left-12 top-24 h-72 w-72 rounded-full bg-gradient-to-br from-blue-200/50 via-white to-transparent blur-3xl" />
+        <div className="absolute right-6 top-48 h-60 w-60 rounded-full bg-gradient-to-br from-emerald-200/50 via-white to-transparent blur-3xl" />
 
-      {/* Navbar */}
-      <nav className="relative z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="relative w-6 h-6">
-                <div className="absolute inset-0 bg-blue-500 rounded-tr-lg rounded-bl-lg transform rotate-45 opacity-80"></div>
-                <div className="absolute inset-0 bg-red-500 rounded-full scale-50 mix-blend-multiply"></div>
+        <div className="relative z-10">
+          <SiteHeader />
+
+          <main>
+            <section className="px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
+              <div className="max-w-3xl mx-auto">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-600">
+                  24-48 saat içinde dönüş
+                </div>
+                <h1 className="mt-6 text-4xl md:text-5xl font-semibold text-slate-900">Bize Ulaşın</h1>
+                <p className="mt-4 text-lg text-slate-600">
+                  Sorularınız, geri bildirimleriniz veya destek talepleriniz için buradayız.
+                </p>
               </div>
-              <span className="text-xl font-medium tracking-tight text-gray-700">
-                <span className="font-bold text-gray-500">Mail</span>Sight
-              </span>
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Özellikler
-              </Link>
-              <Link href="/guide" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Rehber
-              </Link>
-              <Link href="/auth/login" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Giriş
-              </Link>
-              <Link href="/auth/register" className="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-black transition-all hover:scale-105 shadow-md">
-                Ücretsiz Başla
-              </Link>
-            </div>
-          </div>
+            </section>
+
+            <section className="px-4 sm:px-6 lg:px-8 pb-16">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                {contactMethods.map((method) => (
+                  <a
+                    key={method.title}
+                    href={method.action}
+                    target={method.action.startsWith('http') ? '_blank' : undefined}
+                    rel={method.action.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_15px_55px_rgba(15,23,42,0.08)] transition-transform hover:-translate-y-1"
+                  >
+                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${method.bgClass}`}>
+                      <method.icon className={`h-5 w-5 ${method.textClass}`} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">{method.title}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{method.description}</p>
+                    <p className={`mt-3 text-sm font-medium ${method.textClass}`}>{method.value}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <section id="form" className="px-4 sm:px-6 lg:px-8 pb-24">
+              <div className="mx-auto max-w-4xl rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_80px_rgba(15,23,42,0.12)]">
+                <div className="text-center">
+                  <h2 className="text-3xl font-semibold text-slate-900">İletişim Formu</h2>
+                  <p className="mt-2 text-sm text-slate-500">Formu doldurun, size en kısa sürede dönelim.</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <label htmlFor="name" className="text-sm font-medium text-slate-600">
+                        İsim Soyisim
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-slate-900/10"
+                        placeholder="Adınız Soyadınız"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="text-sm font-medium text-slate-600">
+                        E-posta
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-slate-900/10"
+                        placeholder="ornek@email.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="subject" className="text-sm font-medium text-slate-600">
+                      Konu
+                    </label>
+                    <select
+                      id="subject"
+                      name="subject"
+                      required
+                      value={formData.subject}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-slate-900/10"
+                    >
+                      <option value="">Konu seçin...</option>
+                      <option value="Teknik Destek">Teknik Destek</option>
+                      <option value="Özellik Talebi">Özellik Talebi</option>
+                      <option value="Bug Report">Bug Report</option>
+                      <option value="Hesap Sorunu">Hesap Sorunu</option>
+                      <option value="KVKK Talebi">KVKK Talebi</option>
+                      <option value="Diğer">Diğer</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message" className="text-sm font-medium text-slate-600">
+                      Mesajınız
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      required
+                      rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-slate-900/10"
+                      placeholder="Detaylı açıklama yazın..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitted}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-8 py-4 text-sm font-semibold text-white shadow-[0_20px_40px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {submitted ? (
+                      <>
+                        <Mail className="h-5 w-5" /> Gönderildi!
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-5 w-5" /> Gönder
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs uppercase tracking-[0.3em] text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Clock className="h-4 w-4" /> 24-48 Saat Yanıt
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <MapPin className="h-4 w-4" /> Türkiye
+                  </div>
+                </div>
+              </div>
+            </section>
+          </main>
+
+          <Footer />
         </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards', opacity: 0 }}>
-          <div className="inline-block mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg animate-pulse-glow">
-              <MessageSquare className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Bize Ulaşın
-          </h1>
-          
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Sorularınız, geri bildirimleriniz veya destek talepleriniz için buradayız.
-          </p>
-        </div>
-      </section>
-
-      {/* Contact Methods */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {contactMethods.map((method, index) => (
-            <a
-              key={index}
-              href={method.action}
-              target={method.action.startsWith('http') ? '_blank' : undefined}
-              rel={method.action.startsWith('http') ? 'noopener noreferrer' : undefined}
-              className="method-card bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1"
-              style={{ animationDelay: `${0.2 + index * 0.1}s`, animationFillMode: 'forwards', opacity: 0 }}
-            >
-              <div className={`w-12 h-12 rounded-xl bg-${method.color}-50 flex items-center justify-center mb-4`}>
-                <method.icon className={`w-6 h-6 text-${method.color}-600`} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{method.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{method.description}</p>
-              <p className={`text-sm font-medium text-${method.color}-600`}>{method.value}</p>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* Contact Form */}
-      <section id="form" className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">İletişim Formu</h2>
-            <p className="text-gray-600">Formu doldurun, size en kısa sürede dönelim</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  İsim Soyisim
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Adınız Soyadınız"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  E-posta
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="ornek@email.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                Konu
-              </label>
-              <select
-                id="subject"
-                name="subject"
-                required
-                value={formData.subject}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="">Konu seçin...</option>
-                <option value="Teknik Destek">Teknik Destek</option>
-                <option value="Özellik Talebi">Özellik Talebi</option>
-                <option value="Bug Report">Bug Report</option>
-                <option value="Hesap Sorunu">Hesap Sorunu</option>
-                <option value="KVKK Talebi">KVKK Talebi</option>
-                <option value="Diğer">Diğer</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                Mesajınız
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                required
-                rows={6}
-                value={formData.message}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                placeholder="Detaylı açıklama yazın..."
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitted}
-              className="w-full bg-gray-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-black transition-all hover:scale-[1.02] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submitted ? (
-                <>
-                  <Mail className="w-5 h-5" />
-                  Gönderildi!
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Gönder
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-8 pt-8 border-t border-gray-100">
-            <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>24-48 saat içinde yanıt</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>Türkiye</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes pulseGlow {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-          }
-          50% {
-            box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .animate-pulse-glow {
-          animation: pulseGlow 2s ease-in-out infinite;
-        }
-        .method-card {
-          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-      `}</style>
+      </div>
     </div>
   )
 }

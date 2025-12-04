@@ -89,8 +89,8 @@ export default function HomePage() {
                     MailSight · Beta v1.2
                   </div>
                   <h1 className="mt-6 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-slate-900">
-                    Apple & OpenAI çizgisinde
-                    <span className="block text-slate-500">antigravity e-posta takibi</span>
+                    Görünmez pixel ile
+                    <span className="block text-slate-500">gerçek zamanlı mail telemetrisi</span>
                   </h1>
                   <p className="mt-6 text-lg text-slate-600 max-w-xl">
                     Gönderdiğiniz her mailin açılma anı, cihazı ve tekrar okunma sayısı minimalist bir panelde. Kod bilgisi gerekmez, 5 dakikada çalışır.
