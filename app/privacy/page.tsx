@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import ParticleCanvas from '@/components/ParticleCanvas'
 import Footer from '@/components/Footer'
+import SiteHeader from '@/components/SiteHeader'
 import { Shield, Lock, Eye, Database, UserCheck, Mail } from 'lucide-react'
 
 const sections = [
@@ -82,155 +82,77 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
-      <ParticleCanvas />
+    <div className="bg-[#f4f6fb] min-h-screen text-slate-900">
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-[300px] bg-gradient-to-b from-white via-white/80 to-transparent" />
+        <div className="absolute right-10 top-16 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-200/50 via-white to-transparent blur-3xl" />
 
-      {/* Navbar */}
-      <nav className="relative z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="relative w-6 h-6">
-                <div className="absolute inset-0 bg-blue-500 rounded-tr-lg rounded-bl-lg transform rotate-45 opacity-80"></div>
-                <div className="absolute inset-0 bg-red-500 rounded-full scale-50 mix-blend-multiply"></div>
+        <div className="relative z-10">
+          <SiteHeader />
+
+          <main>
+            <section className="px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
+              <div className="max-w-4xl mx-auto">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-600">
+                  KVKK & GDPR uyumlu
+                </div>
+                <h1 className="mt-6 text-4xl md:text-5xl font-semibold text-slate-900">
+                  Gizlilik Politikası
+                </h1>
+                <p className="mt-4 text-lg text-slate-600">
+                  Verileriniz bizim için değerlidir. Nasıl topladığımız, kullandığımız ve koruduğumuzu şeffaf şekilde açıklıyoruz.
+                </p>
               </div>
-              <span className="text-xl font-medium tracking-tight text-gray-700">
-                <span className="font-bold text-gray-500">Mail</span>Sight
-              </span>
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Özellikler
-              </Link>
-              <Link href="/guide" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Rehber
-              </Link>
-              <Link href="/auth/login" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Giriş
-              </Link>
-              <Link href="/auth/register" className="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-black transition-all hover:scale-105 shadow-md">
-                Ücretsiz Başla
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+            </section>
 
-      {/* Hero */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards', opacity: 0 }}>
-          <div className="inline-block mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg animate-glow">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Gizlilik Politikası & KVKK
-          </h1>
-          
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Verileriniz bizim için değerlidir. Nasıl topladığımız, kullandığımız ve koruduğumuzu şeffaf şekilde açıklıyoruz.
-          </p>
-
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-full px-4 py-2 text-sm font-medium text-green-700">
-              KVKK Uyumlu
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-700">
-              GDPR Uyumlu
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Content Sections */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="space-y-8">
-          {sections.map((section, index) => (
-            <div
-              key={index}
-              className="section-card bg-white border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all"
-              style={{ animationDelay: `${0.1 + index * 0.1}s`, animationFillMode: 'forwards', opacity: 0 }}
-            >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 flex items-center justify-center">
-                    <section.icon className="w-7 h-7 text-blue-600" />
+            <section className="px-4 sm:px-6 lg:px-8 pb-24">
+              <div className="max-w-5xl mx-auto space-y-6">
+                {sections.map((section) => (
+                  <div
+                    key={section.title}
+                    className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_15px_55px_rgba(15,23,42,0.08)]"
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                      <div className="w-12 h-12 rounded-2xl border border-white/60 bg-white/80 flex items-center justify-center">
+                        <section.icon className="w-6 h-6 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
+                        <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                          {section.content.map((item) => (
+                            <li key={item} className="flex items-start gap-2">
+                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.title}</h2>
-                  <ul className="space-y-3">
-                    {section.content.map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-700">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                ))}
               </div>
-            </div>
-          ))}
+
+              <div className="mt-12 text-center text-xs uppercase tracking-[0.3em] text-slate-400">
+                Son güncelleme: 4 Aralık 2025
+              </div>
+
+              <div className="mt-10 rounded-[30px] border border-white/60 bg-white/80 p-8 text-center shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+                <h3 className="text-2xl font-semibold text-slate-900">Sorularınız mı var?</h3>
+                <p className="mt-2 text-sm text-slate-500">Gizlilik ve KVKK ile ilgili tüm talepleriniz için bizimle iletişime geçin.</p>
+                <a
+                  href="mailto:privacy@mailsight.com"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-sm font-semibold text-white"
+                >
+                  <Mail className="w-4 h-4" />
+                  privacy@mailsight.com
+                </a>
+              </div>
+            </section>
+          </main>
+
+          <Footer />
         </div>
-
-        {/* Last Updated */}
-        <div className="mt-12 text-center text-sm text-gray-500">
-          Son güncelleme: 4 Aralık 2025
-        </div>
-
-        {/* Contact CTA */}
-        <div className="mt-12 bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 rounded-2xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Sorularınız mı var?
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Gizlilik ve KVKK ile ilgili tüm talepleriniz için bizimle iletişime geçin.
-          </p>
-          <a
-            href="mailto:privacy@mailsight.com"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-3 rounded-full font-semibold hover:bg-black transition-all hover:scale-105 shadow-lg"
-          >
-            <Mail className="w-5 h-5" />
-            privacy@mailsight.com
-          </a>
-        </div>
-      </section>
-
-      <Footer />
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes glow {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-          }
-          50% {
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .animate-glow {
-          animation: glow 2s ease-in-out infinite;
-        }
-        .section-card {
-          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-      `}</style>
+      </div>
     </div>
   )
 }
