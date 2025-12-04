@@ -15,7 +15,7 @@ interface MailDetailModalProps {
 
 interface ReadLog {
   id: string
-  created_at: string
+  read_at: string
   ip_address: string | null
   user_agent: string | null
   device_type: string | null
@@ -35,13 +35,32 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
 
   const fetchReadLogs = async () => {
     const pixelId = mail.mailtrack_tracking_pixels?.[0]?.id
-    if (!pixelId) return
+    console.log('🔍 Fetching read logs for:', {
+      mailId: mail.id,
+      pixelId: pixelId,
+      hasPixel: !!pixelId
+    })
+    
+    if (!pixelId) {
+      console.warn('⚠️ No pixel ID found for mail:', mail.id)
+      return
+    }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('mailtrack_read_logs')
       .select('*')
       .eq('pixel_id', pixelId)
-      .order('created_at', { ascending: false })
+      .order('read_at', { ascending: false })
+
+    console.log('📊 Read logs query result:', {
+      count: data?.length || 0,
+      data: data,
+      error: error
+    })
+
+    if (error) {
+      console.error('❌ Error fetching read logs:', error)
+    }
 
     if (data) {
       setReadLogs(data)
@@ -100,32 +119,32 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-gray-100 animate-scale-in">
         
         {/* Fixed Header */}
-        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex-shrink-0 border-b border-gray-100 p-6 bg-gradient-to-b from-white to-gray-50/50">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors z-10"
+            className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-all hover:scale-110 z-10"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
 
-          <h2 className="text-2xl font-bold mb-2 pr-10">{mail.title}</h2>
+          <h2 className="text-2xl font-bold mb-2 pr-10 text-gray-900">{mail.title}</h2>
           
           {(mail.recipient_email || mail.mail_subject) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2 text-sm">
               {mail.recipient_email && (
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <MailIcon className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MailIcon className="w-4 h-4 text-blue-500" />
                   <span className="font-medium">Alıcı:</span>
                   <span className="truncate">{mail.recipient_name ? `${mail.recipient_name} (${mail.recipient_email})` : mail.recipient_email}</span>
                 </div>
               )}
               {mail.mail_subject && (
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <Eye className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Eye className="w-4 h-4 text-green-500" />
                   <span className="font-medium">Konu:</span>
                   <span className="truncate">{mail.mail_subject}</span>
                 </div>
@@ -134,8 +153,8 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
           )}
 
           {mail.notes && (
-            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
-              <p className="text-gray-700 dark:text-gray-300"><strong>Notlar:</strong> {mail.notes}</p>
+            <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm">
+              <p className="text-gray-700"><strong className="text-blue-700">Notlar:</strong> {mail.notes}</p>
             </div>
           )}
         </div>
@@ -269,69 +288,92 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="card text-center">
-              <Eye className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{mail.open_count}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Toplam</p>
+            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
+                <Eye className="w-6 h-6 text-blue-500" />
+              </div>
+              <p className="text-3xl font-bold text-blue-600">{mail.open_count || 0}</p>
+              <p className="text-sm text-gray-600 mt-1">Toplam</p>
             </div>
-            <div className="card text-center">
-              <Monitor className="w-8 h-8 text-green-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{readLogs.length}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Benzersiz</p>
+            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+                <Monitor className="w-6 h-6 text-green-500" />
+              </div>
+              <p className="text-3xl font-bold text-green-600">{readLogs.length}</p>
+              <p className="text-sm text-gray-600 mt-1">Benzersiz</p>
             </div>
-            <div className="card text-center">
-              <Clock className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">
+            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+                <Clock className="w-6 h-6 text-orange-500" />
+              </div>
+              <p className="text-2xl font-bold text-orange-600">
                 {mail.first_opened_at ? format(new Date(mail.first_opened_at), 'dd MMM', { locale: tr }) : '-'}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">İlk Okuma</p>
+              <p className="text-sm text-gray-600 mt-1">İlk Okuma</p>
             </div>
           </div>
 
           {/* Read Logs */}
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5" />
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900">
+              <Clock className="w-5 h-5 text-blue-500" />
               Okuma Geçmişi ({readLogs.length})
             </h3>
             
+            {/* Debug Info - Remove this in production */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono">
+                <div className="text-gray-600">
+                  <strong>Debug Info:</strong><br/>
+                  Mail ID: {mail.id}<br/>
+                  Pixel ID: {mail.mailtrack_tracking_pixels?.[0]?.id || 'N/A'}<br/>
+                  Logs Count: {readLogs.length}<br/>
+                  Open Count: {mail.open_count || 0}
+                </div>
+              </div>
+            )}
+            
             {readLogs.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Eye className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Henüz okuma kaydı yok</p>
-                <p className="text-sm mt-2">Mail açıldığında burada görünecek</p>
+              <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <Eye className="w-8 h-8 text-gray-300" />
+                </div>
+                <p className="text-gray-900 font-medium mb-1">Henüz okuma kaydı yok</p>
+                <p className="text-sm text-gray-500">Mail açıldığında burada görünecek</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {readLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                    className="p-4 border border-gray-100 rounded-xl hover:border-gray-200 transition-all bg-white hover:shadow-sm"
                   >
                     <div className="flex items-start gap-3">
-                      {getDeviceIcon(log.device_type)}
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                        {getDeviceIcon(log.device_type)}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">
-                          {format(new Date(log.created_at), "d MMMM yyyy, HH:mm", { locale: tr })}
+                        <p className="font-semibold text-sm text-gray-900">
+                          {format(new Date(log.read_at), "d MMMM yyyy, HH:mm", { locale: tr })}
                         </p>
-                        <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                        <div className="flex flex-wrap gap-2 mt-2">
                           {log.device_type && (
-                            <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded">
+                            <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                               {log.device_type}
                             </span>
                           )}
                           {log.browser && (
-                            <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded">
+                            <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
                               {log.browser}
                             </span>
                           )}
                           {log.os && (
-                            <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded">
+                            <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
                               {log.os}
                             </span>
                           )}
                           {log.ip_address && (
-                            <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded flex items-center gap-1">
+                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium flex items-center gap-1">
                               <Globe className="w-3 h-3" />
                               {log.ip_address}
                             </span>
@@ -346,6 +388,29 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
           </div>
         </div>
       </div>
+      
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
     </div>
   )
 }
