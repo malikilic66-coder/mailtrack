@@ -13,11 +13,8 @@ import {
   CheckCircle,
   Circle,
   LogOut,
-  Settings,
-  Copy,
-  ExternalLink
+  Settings
 } from 'lucide-react'
-import ParticleCanvas from '@/components/ParticleCanvas'
 import CreateMailModal from '@/components/CreateMailModal'
 import MailDetailModal from '@/components/MailDetailModal'
 import { format } from 'date-fns'
@@ -131,189 +128,184 @@ export default function DashboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
-      <ParticleCanvas />
-      
-      {/* Navbar */}
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-                <Eye className="w-5 h-5 text-white dark:text-black" />
-              </div>
-              <h1 className="text-xl font-bold">MailSight</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {user.email}
-              </div>
-              <button
-                onClick={() => router.push('/dashboard/settings')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="bg-[#f4f6fb] min-h-screen text-slate-900">
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-[360px] bg-gradient-to-b from-white via-white/70 to-transparent" />
+        <div className="absolute -left-16 top-16 h-80 w-80 rounded-full bg-gradient-to-br from-blue-200/50 via-white to-transparent blur-3xl" />
+        <div className="absolute right-4 top-48 h-72 w-72 rounded-full bg-gradient-to-br from-emerald-200/50 via-white to-transparent blur-3xl" />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-fade-in-up">
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-            <div className="flex items-center justify-between">
+        <div className="relative z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Toplam Mail</p>
-                <p className="text-4xl font-bold mt-2 text-gray-900">{stats?.total_mails || 0}</p>
+                <div className="inline-flex items-center gap-3 rounded-[30px] border border-white/60 bg-white/90 px-4 py-2 shadow-[0_10px_35px_rgba(15,23,42,0.1)]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                    <Eye className="h-4 w-4" />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">MailSight dashboard</span>
+                </div>
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  gerçek zamanlı kontrol
+                </div>
+                <h1 className="mt-4 text-3xl md:text-4xl font-semibold text-slate-900">
+                  Dashboard · görünmez pixel telemetrisi
+                </h1>
+                <p className="mt-2 text-sm text-slate-500 max-w-2xl">
+                  Gönderdiğiniz her mailin anlık okunma olayları; Apple dinginliği ve OpenAI netliğinde log akışı.
+                </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                <Mail className="w-6 h-6 text-blue-500" />
+              <div className="flex items-center gap-3 rounded-[32px] border border-white/60 bg-white/80 px-4 py-3 shadow-[0_12px_45px_rgba(15,23,42,0.12)]">
+                <div className="flex flex-col text-right">
+                  <span className="text-xs text-slate-400">Bağlı hesap</span>
+                  <span className="text-sm font-semibold text-slate-900">{user.email}</span>
+                </div>
+                <div className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
+                  <button
+                    onClick={() => router.push('/dashboard/settings')}
+                    className="p-2 hover:text-slate-900 text-slate-500 transition"
+                    aria-label="Ayarlar"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  <span className="h-4 w-px bg-slate-300" />
+                  <button
+                    onClick={handleSignOut}
+                    className="p-2 hover:text-slate-900 text-slate-500 transition"
+                    aria-label="Çıkış"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
+            </header>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Okunan</p>
-                <p className="text-4xl font-bold mt-2 text-green-600">{stats?.opened_mails || 0}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Bekleyen</p>
-                <p className="text-4xl font-bold mt-2 text-orange-600">{stats?.pending_mails || 0}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Toplam Okuma</p>
-                <p className="text-4xl font-bold mt-2 text-blue-600">{stats?.total_opens || 0}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-500" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mail List */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Mail İzlemelerim</h2>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-black transition-all hover:scale-105 shadow-md"
-            >
-              <Plus className="w-5 h-5" />
-              Yeni İzleme Oluştur
-            </button>
-          </div>
-
-          {mailItems.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-10 h-10 text-gray-300" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Henüz mail izlemeniz yok
-              </h3>
-              <p className="text-gray-500 mb-8">
-                İlk mail izlemenizi oluşturarak başlayın
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full font-medium hover:bg-black transition-all hover:scale-105 shadow-lg"
-              >
-                <Plus className="w-5 h-5" />
-                Yeni İzleme Oluştur
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {mailItems.map((mail) => (
+            <section className="mt-8 grid gap-4 lg:grid-cols-4">
+              {[
+                {
+                  label: 'Toplam Mail',
+                  value: stats?.total_mails || 0,
+                  icon: Mail,
+                  accent: 'from-indigo-50 to-white'
+                },
+                {
+                  label: 'Okunan',
+                  value: stats?.opened_mails || 0,
+                  icon: CheckCircle,
+                  accent: 'from-emerald-50 to-white'
+                },
+                {
+                  label: 'Bekleyen',
+                  value: stats?.pending_mails || 0,
+                  icon: Clock,
+                  accent: 'from-amber-50 to-white'
+                },
+                {
+                  label: 'Toplam Okuma',
+                  value: stats?.total_opens || 0,
+                  icon: TrendingUp,
+                  accent: 'from-sky-50 to-white'
+                }
+              ].map((card) => (
                 <div
-                  key={mail.id}
-                  onClick={() => setSelectedMail(mail)}
-                  className="p-5 border border-gray-100 rounded-xl hover:border-gray-200 transition-all cursor-pointer hover:shadow-md hover:-translate-y-0.5 bg-gray-50/50 hover:bg-white"
+                  key={card.label}
+                  className="rounded-[28px] border border-white/70 bg-white/80 p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur"
                 >
-
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      {getStatusIcon(mail.status)}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {mail.title}
-                        </h3>
-                        {(mail.recipient_email || mail.mail_subject) && (
-                          <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-gray-500">
-                            {mail.recipient_email && (
-                              <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
-                                <Mail className="w-3 h-3 text-blue-600" />
-                                <span className="text-blue-600 font-medium">{mail.recipient_name || mail.recipient_email}</span>
-                              </span>
-                            )}
-                            {mail.mail_subject && (
-                              <span className="bg-gray-100 px-2 py-1 rounded-full">
-                                <span className="italic text-gray-600">{mail.mail_subject}</span>
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <p className="text-sm text-gray-400 mt-2">
-                          {format(new Date(mail.created_at), "d MMMM yyyy, HH:mm", { locale: tr })}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{card.label}</p>
+                      <p className="mt-3 text-4xl font-semibold text-slate-900">{card.value}</p>
                     </div>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="text-center bg-blue-50 px-4 py-2 rounded-xl">
-                        <p className="text-3xl font-bold text-blue-600">
-                          {mail.open_count}
-                        </p>
-                        <p className="text-xs text-blue-600 font-medium mt-1">
-                          Okuma
-                        </p>
-                      </div>
-                      
-                      {mail.first_opened_at && (
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600 font-medium">
-                            İlk Okuma
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {format(new Date(mail.first_opened_at), "d MMM, HH:mm", { locale: tr })}
-                          </p>
-                        </div>
-                      )}
+                    <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${card.accent} flex items-center justify-center`}>
+                      <card.icon className="w-5 h-5 text-slate-600" />
                     </div>
                   </div>
                 </div>
               ))}
-            </div>
-          )}
+            </section>
+
+            <section className="mt-10 rounded-[36px] border border-white/70 bg-white/90 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.15)] backdrop-blur">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Mail İzlemelerim</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">Görünmez pixel log akışı</h2>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5"
+                >
+                  <Plus className="w-4 h-4" /> Yeni İzleme
+                </button>
+              </div>
+
+              {mailItems.length === 0 ? (
+                <div className="mt-12 rounded-[30px] border border-dashed border-slate-200 bg-slate-50/80 p-10 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white/80">
+                    <Mail className="h-6 w-6 text-slate-400" />
+                  </div>
+                  <h3 className="mt-6 text-xl font-semibold text-slate-900">Henüz mail izlemeniz yok</h3>
+                  <p className="mt-2 text-sm text-slate-500">İlk görünmez pikselinizi oluşturarak başlayın.</p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    <Plus className="w-4 h-4" /> Yeni İzleme Oluştur
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-8 space-y-4">
+                  {mailItems.map((mail) => (
+                    <button
+                      key={mail.id}
+                      onClick={() => setSelectedMail(mail)}
+                      className="w-full rounded-3xl border border-white/60 bg-white/80 p-5 text-left shadow-[0_12px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
+                    >
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex items-start gap-3">
+                          {getStatusIcon(mail.status)}
+                          <div>
+                            <h3 className="text-base font-semibold text-slate-900">{mail.title}</h3>
+                            {(mail.recipient_email || mail.mail_subject) && (
+                              <div className="mt-1 flex flex-wrap gap-2 text-xs">
+                                {mail.recipient_email && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                                    <Mail className="h-3 w-3" />
+                                    {mail.recipient_name || mail.recipient_email}
+                                  </span>
+                                )}
+                                {mail.mail_subject && (
+                                  <span className="rounded-full bg-white/90 px-3 py-1 text-slate-500">
+                                    “{mail.mail_subject}”
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <p className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-400">
+                              {format(new Date(mail.created_at), 'd MMMM yyyy, HH:mm', { locale: tr })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-6">
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-2 text-center">
+                            <p className="text-3xl font-semibold text-slate-900">{mail.open_count}</p>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-slate-400">Okuma</p>
+                          </div>
+                          {mail.first_opened_at && (
+                            <div className="text-right">
+                              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">İlk Okuma</p>
+                              <p className="mt-2 text-sm text-slate-600">
+                                {format(new Date(mail.first_opened_at), 'd MMM, HH:mm', { locale: tr })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
 
