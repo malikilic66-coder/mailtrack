@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { X, Copy, Check, Clock, Monitor, Smartphone, Globe, Link as LinkIcon, Code, Image as ImageIcon, Mail as MailIcon, Eye } from 'lucide-react'
+import { X, Copy, Check, Clock, Monitor, Smartphone, Globe, ChevronDown, ChevronUp, Eye, Activity } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale/tr'
 
-type CopyFormat = 'url' | 'img' | 'html' | 'gmail'
+type CopyFormat = 'gmail' | 'url' | 'optimized' | 'html'
 
 interface MailDetailModalProps {
   mail: any
@@ -27,6 +27,9 @@ interface ReadLog {
 export default function MailDetailModal({ mail, onClose }: MailDetailModalProps) {
   const [copiedFormat, setCopiedFormat] = useState<CopyFormat | null>(null)
   const [readLogs, setReadLogs] = useState<ReadLog[]>([])
+  const [showOtherFormats, setShowOtherFormats] = useState(false)
+  const [expandedFormat, setExpandedFormat] = useState<CopyFormat | null>(null)
+  const [showActivity, setShowActivity] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -35,16 +38,8 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
 
   const fetchReadLogs = async () => {
     const pixelId = mail.mailtrack_tracking_pixels?.[0]?.id
-    console.log('🔍 Fetching read logs for:', {
-      mailId: mail.id,
-      pixelId: pixelId,
-      hasPixel: !!pixelId
-    })
     
-    if (!pixelId) {
-      console.warn('⚠️ No pixel ID found for mail:', mail.id)
-      return
-    }
+    if (!pixelId) return
 
     const { data, error } = await supabase
       .from('mailtrack_read_logs')
@@ -52,14 +47,8 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
       .eq('pixel_id', pixelId)
       .order('read_at', { ascending: false })
 
-    console.log('📊 Read logs query result:', {
-      count: data?.length || 0,
-      data: data,
-      error: error
-    })
-
     if (error) {
-      console.error('❌ Error fetching read logs:', error)
+      console.error('Error fetching read logs:', error)
     }
 
     if (data) {
@@ -73,14 +62,14 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
     if (!pixelUrl) return ''
     
     switch (format) {
+      case 'gmail':
+        return `<img src="${pixelUrl}" width="1" height="1" border="0" style="border:0;outline:0;display:inline;margin:0;padding:0;pointer-events:none;user-select:none;" alt="" />`
       case 'url':
         return pixelUrl
-      case 'img':
+      case 'optimized':
         return `<img src="${pixelUrl}" width="1" height="1" style="pointer-events:none;user-select:none;" alt="" />`
       case 'html':
         return `<img src="${pixelUrl}" width="1" height="1" style="display:none;opacity:0;position:absolute;pointer-events:none;" alt="" />`
-      case 'gmail':
-        return `<img src="${pixelUrl}" width="1" height="1" border="0" style="border:0;outline:0;display:inline;margin:0;padding:0;pointer-events:none;user-select:none;" alt="" />`
       default:
         return pixelUrl
     }
@@ -97,21 +86,6 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
     }
   }
 
-  const getInstructions = (format: CopyFormat): string => {
-    switch (format) {
-      case 'url':
-        return 'Gmail\'de: İmza ekle → Resim ekle → URL ile ekle → Bu linki yapıştır'
-      case 'img':
-        return 'Gmail\'de mail yazarken: Ctrl+V ile doğrudan yapıştır (ÖNERİLEN)'
-      case 'html':
-        return 'HTML destekleyen mail istemcileri için (Outlook, Thunderbird)'
-      case 'gmail':
-        return 'Gmail optimize edilmiş - En iyi uyumluluk'
-      default:
-        return ''
-    }
-  }
-
   const getDeviceIcon = (deviceType: string | null) => {
     if (deviceType === 'mobile') return <Smartphone className="w-4 h-4" />
     if (deviceType === 'desktop') return <Monitor className="w-4 h-4" />
@@ -119,298 +93,241 @@ export default function MailDetailModal({ mail, onClose }: MailDetailModalProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-gray-100 animate-scale-in">
-        
-        {/* Fixed Header */}
-        <div className="flex-shrink-0 border-b border-gray-100 p-6 bg-gradient-to-b from-white to-gray-50/50">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl rounded-[32px] border border-white/70 bg-white p-8 shadow-[0_40px_120px_rgba(15,23,42,0.3)] max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute right-6 top-6 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Minimal Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-2">{mail.title}</h2>
+          <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+            {mail.recipient_email && (
+              <span>Alıcı: <span className="text-slate-700">{mail.recipient_name || mail.recipient_email}</span></span>
+            )}
+            {mail.mail_subject && (
+              <span>· Konu: <span className="text-slate-700">{mail.mail_subject}</span></span>
+            )}
+          </div>
+        </div>
+
+        {/* Recommended Code - Single Line */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <span className="text-base">📧</span>
+              Gmail için Önerilen Kod
+            </h3>
+            <button
+              onClick={() => copyToClipboard('gmail')}
+              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition ${
+                copiedFormat === 'gmail'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
+              }`}
+            >
+              {copiedFormat === 'gmail' ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Kopyalandı!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  Kopyala
+                </>
+              )}
+            </button>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <code className="block text-xs text-slate-700 break-all font-mono">
+              {getTrackingCode('gmail')}
+            </code>
+          </div>
+        </div>
+
+        {/* Other Formats - Collapsible */}
+        <div className="mb-8">
           <button
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-all hover:scale-110 z-10"
+            onClick={() => setShowOtherFormats(!showOtherFormats)}
+            className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <span className="flex items-center gap-2">
+              {showOtherFormats ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              Diğer Formatlar
+            </span>
           </button>
 
-          <h2 className="text-2xl font-bold mb-2 pr-10 text-gray-900">{mail.title}</h2>
-          
-          {(mail.recipient_email || mail.mail_subject) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2 text-sm">
-              {mail.recipient_email && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MailIcon className="w-4 h-4 text-blue-500" />
-                  <span className="font-medium">Alıcı:</span>
-                  <span className="truncate">{mail.recipient_name ? `${mail.recipient_name} (${mail.recipient_email})` : mail.recipient_email}</span>
-                </div>
-              )}
-              {mail.mail_subject && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Eye className="w-4 h-4 text-green-500" />
-                  <span className="font-medium">Konu:</span>
-                  <span className="truncate">{mail.mail_subject}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mail.notes && (
-            <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm">
-              <p className="text-gray-700"><strong className="text-blue-700">Notlar:</strong> {mail.notes}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          
-          {/* Tracking Code Formats */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Code className="w-5 h-5" />
-              İzleme Kodu - Farklı Formatlar
-            </h3>
-            
-            <div className="space-y-3">
-              {/* Gmail Simple IMG - RECOMMENDED */}
-              <div className="border-2 border-green-500 dark:border-green-600 rounded-lg p-4 bg-green-50 dark:bg-green-900/10">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2 flex-1">
-                    <ImageIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-bold text-green-800 dark:text-green-400">Gmail İçin Basit Format (ÖNERİLEN) ✓</h4>
-                      <p className="text-xs text-green-700 dark:text-green-500 mt-1">{getInstructions('img')}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard('img')}
-                    className="btn-primary flex items-center gap-2 text-sm shrink-0 ml-2"
-                  >
-                    {copiedFormat === 'img' ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Kopyalandı!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        Kopyala
-                      </>
-                    )}
-                  </button>
-                </div>
-                <code className="block bg-white dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto border border-green-300 dark:border-green-700">
-                  {getTrackingCode('img')}
-                </code>
-              </div>
-
+          {showOtherFormats && (
+            <div className="mt-3 space-y-2">
               {/* URL Only */}
-              <details className="border border-gray-300 dark:border-gray-600 rounded-lg">
-                <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <LinkIcon className="w-5 h-5 text-blue-600" />
-                    <span className="font-bold">Sadece URL (Resim URL olarak ekle)</span>
-                  </div>
-                </summary>
-                <div className="p-4 pt-0">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{getInstructions('url')}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-gray-50 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto">
-                      {getTrackingCode('url')}
-                    </code>
+              <div className="rounded-xl border border-slate-200 bg-white">
+                <button
+                  onClick={() => setExpandedFormat(expandedFormat === 'url' ? null : 'url')}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition"
+                >
+                  <span>• Sadece URL</span>
+                  {expandedFormat === 'url' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+                {expandedFormat === 'url' && (
+                  <div className="border-t border-slate-100 p-4">
+                    <div className="rounded-xl bg-slate-50 p-3 mb-3">
+                      <code className="block text-xs text-slate-700 break-all font-mono">
+                        {getTrackingCode('url')}
+                      </code>
+                    </div>
                     <button
                       onClick={() => copyToClipboard('url')}
-                      className="btn-secondary flex items-center gap-2 text-sm shrink-0"
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                     >
-                      {copiedFormat === 'url' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copiedFormat === 'url' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      Kopyala
                     </button>
                   </div>
-                </div>
-              </details>
+                )}
+              </div>
 
               {/* Gmail Optimized */}
-              <details className="border border-gray-300 dark:border-gray-600 rounded-lg">
-                <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MailIcon className="w-5 h-5 text-purple-600" />
-                    <span className="font-bold">Gmail Optimize Edilmiş</span>
-                  </div>
-                </summary>
-                <div className="p-4 pt-0">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{getInstructions('gmail')}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-gray-50 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto">
-                      {getTrackingCode('gmail')}
-                    </code>
+              <div className="rounded-xl border border-slate-200 bg-white">
+                <button
+                  onClick={() => setExpandedFormat(expandedFormat === 'optimized' ? null : 'optimized')}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition"
+                >
+                  <span>• Gmail Optimize Edilmiş</span>
+                  {expandedFormat === 'optimized' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+                {expandedFormat === 'optimized' && (
+                  <div className="border-t border-slate-100 p-4">
+                    <div className="rounded-xl bg-slate-50 p-3 mb-3">
+                      <code className="block text-xs text-slate-700 break-all font-mono">
+                        {getTrackingCode('optimized')}
+                      </code>
+                    </div>
                     <button
-                      onClick={() => copyToClipboard('gmail')}
-                      className="btn-secondary flex items-center gap-2 text-sm shrink-0"
+                      onClick={() => copyToClipboard('optimized')}
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                     >
-                      {copiedFormat === 'gmail' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copiedFormat === 'optimized' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      Kopyala
                     </button>
                   </div>
-                </div>
-              </details>
+                )}
+              </div>
 
               {/* HTML Hidden */}
-              <details className="border border-gray-300 dark:border-gray-600 rounded-lg">
-                <summary className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Code className="w-5 h-5 text-orange-600" />
-                    <span className="font-bold">HTML Gizli Stil (Diğer İstemciler)</span>
-                  </div>
-                </summary>
-                <div className="p-4 pt-0">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{getInstructions('html')}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-gray-50 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto">
-                      {getTrackingCode('html')}
-                    </code>
+              <div className="rounded-xl border border-slate-200 bg-white">
+                <button
+                  onClick={() => setExpandedFormat(expandedFormat === 'html' ? null : 'html')}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition"
+                >
+                  <span>• HTML Gizli Stil</span>
+                  {expandedFormat === 'html' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+                {expandedFormat === 'html' && (
+                  <div className="border-t border-slate-100 p-4">
+                    <div className="rounded-xl bg-slate-50 p-3 mb-3">
+                      <code className="block text-xs text-slate-700 break-all font-mono">
+                        {getTrackingCode('html')}
+                      </code>
+                    </div>
                     <button
                       onClick={() => copyToClipboard('html')}
-                      className="btn-secondary flex items-center gap-2 text-sm shrink-0"
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                     >
-                      {copiedFormat === 'html' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copiedFormat === 'html' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      Kopyala
                     </button>
                   </div>
-                </div>
-              </details>
+                )}
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Usage Tips */}
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2">📌 Nasıl Kullanılır?</h4>
-              <ol className="text-sm text-blue-800 dark:text-blue-400 space-y-1 list-decimal list-inside">
-                <li><strong>Gmail için</strong>: Yeşil kutudaki kodu kopyala → Gmail'de mail sonuna yapıştır</li>
-                <li><strong>Resim URL ile</strong>: URL kodu → Gmail imza → Resim ekle → URL ile yapıştır</li>
-                <li><strong>Outlook/Thunderbird</strong>: HTML formatını mail'e yapıştır</li>
-              </ol>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
-                <Eye className="w-6 h-6 text-blue-500" />
-              </div>
-              <p className="text-3xl font-bold text-blue-600">{mail.open_count || 0}</p>
-              <p className="text-sm text-gray-600 mt-1">Toplam</p>
-            </div>
-            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                <Monitor className="w-6 h-6 text-green-500" />
-              </div>
-              <p className="text-3xl font-bold text-green-600">{readLogs.length}</p>
-              <p className="text-sm text-gray-600 mt-1">Benzersiz</p>
-            </div>
-            <div className="bg-white border border-gray-100 rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-all">
-              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-                <Clock className="w-6 h-6 text-orange-500" />
-              </div>
-              <p className="text-2xl font-bold text-orange-600">
-                {mail.first_opened_at ? format(new Date(mail.first_opened_at), 'dd MMM', { locale: tr }) : '-'}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">İlk Okuma</p>
-            </div>
-          </div>
-
-          {/* Read Logs */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900">
-              <Clock className="w-5 h-5 text-blue-500" />
-              Okuma Geçmişi ({readLogs.length})
-            </h3>
-            
-            {/* Debug Info - Remove this in production */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono">
-                <div className="text-gray-600">
-                  <strong>Debug Info:</strong><br/>
-                  Mail ID: {mail.id}<br/>
-                  Pixel ID: {mail.mailtrack_tracking_pixels?.[0]?.id || 'N/A'}<br/>
-                  Logs Count: {readLogs.length}<br/>
-                  Open Count: {mail.open_count || 0}
-                </div>
-              </div>
-            )}
-            
-            {readLogs.length === 0 ? (
-              <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                  <Eye className="w-8 h-8 text-gray-300" />
-                </div>
-                <p className="text-gray-900 font-medium mb-1">Henüz okuma kaydı yok</p>
-                <p className="text-sm text-gray-500">Mail açıldığında burada görünecek</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {readLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="p-4 border border-gray-100 rounded-xl hover:border-gray-200 transition-all bg-white hover:shadow-sm"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                        {getDeviceIcon(log.device_type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-900">
-                          {format(new Date(log.read_at), "d MMMM yyyy, HH:mm", { locale: tr })}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {log.device_type && (
-                            <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                              {log.device_type}
-                            </span>
-                          )}
-                          {log.browser && (
-                            <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                              {log.browser}
-                            </span>
-                          )}
-                          {log.os && (
-                            <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
-                              {log.os}
-                            </span>
-                          )}
-                          {log.ip_address && (
-                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium flex items-center gap-1">
-                              <Globe className="w-3 h-3" />
-                              {log.ip_address}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Minimal Usage Guide */}
+        <div className="mb-8 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-900">ℹ️ Nasıl Kullanılır?</p>
+          <div className="space-y-1 text-sm text-slate-600">
+            <p><strong>Gmail:</strong> Kodu mail sonuna yapıştırın</p>
+            <p><strong>URL:</strong> İmzada görsel olarak ekleyin</p>
+            <p><strong>HTML:</strong> Thunderbird/Outlook</p>
           </div>
         </div>
+
+        {/* Footer - Minimal Icons */}
+        <div className="flex items-center justify-center gap-8 border-t border-slate-100 pt-6">
+          <button
+            onClick={() => window.open(`/track/${mail.id}`, '_blank')}
+            className="group flex flex-col items-center gap-2 text-slate-500 transition hover:text-slate-900"
+            title="Görüntüle"
+          >
+            <Eye className="h-5 w-5" />
+            <span className="text-xs font-medium">Görüntüle</span>
+          </button>
+          <button
+            onClick={() => alert('Test özelliği yakında!')}
+            className="group flex flex-col items-center gap-2 text-slate-500 transition hover:text-slate-900"
+            title="Test Et"
+          >
+            <Monitor className="h-5 w-5" />
+            <span className="text-xs font-medium">Test Et</span>
+          </button>
+          <button
+            onClick={() => setShowActivity(!showActivity)}
+            className={`group flex flex-col items-center gap-2 transition ${
+              showActivity ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+            }`}
+            title="Aktivite"
+          >
+            <Activity className="h-5 w-5" />
+            <span className="text-xs font-medium">Aktivite</span>
+            {readLogs.length > 0 && (
+              <span className="rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                {readLogs.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Read Logs - Clean List (Conditional) */}
+        {showActivity && readLogs.length > 0 && (
+          <div className="mt-8 border-t border-slate-100 pt-6">
+            <h3 className="mb-4 text-sm font-semibold text-slate-900">Son Aktiviteler</h3>
+            <div className="space-y-2">
+              {readLogs.slice(0, 5).map((log) => (
+                <div
+                  key={log.id}
+                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-xs transition hover:border-slate-200"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-600">
+                    {getDeviceIcon(log.device_type)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900">
+                      {format(new Date(log.read_at), "d MMM, HH:mm", { locale: tr })}
+                    </p>
+                    <div className="flex gap-2 text-slate-500">
+                      {log.browser && <span>{log.browser}</span>}
+                      {log.ip_address && <span>· {log.ip_address}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-      
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.2s ease-out;
-        }
-        .animate-scale-in {
-          animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-      `}</style>
     </div>
   )
 }
