@@ -27,6 +27,10 @@ interface MailItem {
   id: string
   title: string
   description: string | null
+  recipient_email: string | null
+  recipient_name: string | null
+  mail_subject: string | null
+  notes: string | null
   status: string
   open_count: number
   first_opened_at: string | null
@@ -252,7 +256,23 @@ export default function DashboardClient({
                         <h3 className="font-medium text-gray-900 dark:text-gray-100">
                           {mail.title}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {(mail.recipient_email || mail.mail_subject) && (
+                          <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {mail.recipient_email && (
+                              <span className="flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                {mail.recipient_name || mail.recipient_email}
+                              </span>
+                            )}
+                            {mail.mail_subject && (
+                              <span className="flex items-center gap-1">
+                                •
+                                <span className="italic">{mail.mail_subject}</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {format(new Date(mail.created_at), "d MMMM yyyy, HH:mm", { locale: tr })}
                         </p>
                       </div>

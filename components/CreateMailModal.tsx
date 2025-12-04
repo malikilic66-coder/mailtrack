@@ -13,6 +13,10 @@ interface CreateMailModalProps {
 export default function CreateMailModal({ userId, onClose, onMailCreated }: CreateMailModalProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [recipientEmail, setRecipientEmail] = useState('')
+  const [recipientName, setRecipientName] = useState('')
+  const [mailSubject, setMailSubject] = useState('')
+  const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
@@ -39,6 +43,10 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
           user_id: userId,
           title,
           description,
+          recipient_email: recipientEmail || null,
+          recipient_name: recipientName || null,
+          mail_subject: mailSubject || null,
+          notes: notes || null,
           status: 'pending'
         })
         .select()
@@ -96,7 +104,7 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Mail Başlığı *
+              İzleme Başlığı *
             </label>
             <input
               id="title"
@@ -112,17 +120,63 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
             </p>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="recipientEmail" className="block text-sm font-medium mb-2">
+                Alıcı E-posta
+              </label>
+              <input
+                id="recipientEmail"
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="input-field"
+                placeholder="ornek@email.com"
+              />
+            </div>
+            <div>
+              <label htmlFor="recipientName" className="block text-sm font-medium mb-2">
+                Alıcı Adı
+              </label>
+              <input
+                id="recipientName"
+                type="text"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="input-field"
+                placeholder="Ahmet Yılmaz"
+              />
+            </div>
+          </div>
+
           <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-2">
-              Açıklama (Opsiyonel)
+            <label htmlFor="mailSubject" className="block text-sm font-medium mb-2">
+              Mail Konusu
+            </label>
+            <input
+              id="mailSubject"
+              type="text"
+              value={mailSubject}
+              onChange={(e) => setMailSubject(e.target.value)}
+              className="input-field"
+              placeholder="Teklif Sunumu Hakkında"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Gönderdiğiniz mail'in konusunu buraya yazın
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="notes" className="block text-sm font-medium mb-2">
+              Notlar (Opsiyonel)
             </label>
             <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               className="input-field"
-              placeholder="Mail hakkında notlar..."
-              rows={3}
+              placeholder="Bu mail hakkında notlarınız..."
+              rows={2}
             />
           </div>
 
