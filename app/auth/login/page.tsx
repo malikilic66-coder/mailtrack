@@ -35,39 +35,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 bg-white">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 bg-[#f4f6fb]">
       <ParticleCanvas />
       
       <div className="w-full max-w-md relative z-10 animate-fade-in-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
+          <Link href="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
             <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-blue-500 rounded-tr-lg rounded-bl-lg transform rotate-45 opacity-80"></div>
-              <div className="absolute inset-0 bg-red-500 rounded-full scale-50 mix-blend-multiply"></div>
+              <div className="absolute inset-0 bg-slate-900 rounded-2xl"></div>
+              <div className="absolute inset-1 bg-white rounded-xl"></div>
+              <div className="absolute inset-2 bg-slate-900 rounded-lg"></div>
             </div>
-            <h1 className="text-3xl font-medium tracking-tight text-gray-800">
-              <span className="font-bold text-gray-500">Mail</span>Sight
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+              MailSight
             </h1>
-          </div>
-          <p className="text-gray-600">
-            E-postalarınızı takip edin
+          </Link>
+          <p className="text-slate-600">
+            Hesabınıza giriş yapın
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-900">Giriş Yap</h2>
+        <div className="bg-white/80 backdrop-blur-xl border border-white/70 rounded-[32px] p-8 shadow-[0_40px_120px_rgba(15,23,42,0.15)]">
+          <h2 className="text-2xl font-semibold mb-6 text-slate-900">Giriş Yap</h2>
           
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
+            <div className="mb-4 p-4 bg-red-50/80 border border-red-200 rounded-2xl text-red-600 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700">
+              <label htmlFor="email" className="block text-sm font-semibold mb-2 text-slate-700">
                 E-posta
               </label>
               <input
@@ -75,14 +76,14 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent transition-all"
                 placeholder="ornek@email.com"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold mb-2 text-slate-700">
                 Şifre
               </label>
               <input
@@ -90,7 +91,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent transition-all"
                 placeholder="••••••••"
                 required
               />
@@ -99,7 +100,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <Link
                 href="/auth/forgot-password"
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                className="text-slate-600 hover:text-slate-900 transition-colors font-medium"
               >
                 Şifremi unuttum
               </Link>
@@ -108,7 +109,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-900 text-white py-3 rounded-full font-medium hover:bg-black transition-all hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 text-white py-3.5 rounded-full font-semibold hover:bg-slate-800 transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 'Giriş yapılıyor...'
@@ -122,12 +123,12 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">
+            <span className="text-slate-600">
               Hesabınız yok mu?{' '}
             </span>
             <Link
               href="/auth/register"
-              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              className="font-semibold text-slate-900 hover:text-slate-700 transition-colors"
             >
               Kayıt Ol
             </Link>
@@ -138,7 +139,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-1"
+            className="text-sm text-slate-600 hover:text-slate-900 transition-colors inline-flex items-center gap-1"
           >
             ← Ana Sayfaya Dön
           </Link>
