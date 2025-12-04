@@ -84,26 +84,26 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 relative">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 animate-fade-in">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-8 relative shadow-2xl border border-gray-100 animate-scale-in">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-all hover:scale-110"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 text-gray-600" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Yeni Mail İzleme Oluştur</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-900">Yeni Mail İzleme Oluştur</h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
+            <label htmlFor="title" className="block text-sm font-medium mb-2 text-gray-700">
               İzleme Başlığı *
             </label>
             <input
@@ -111,18 +111,18 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="input-field"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="Örn: Müşteri Teklifi - Acme Corp"
               required
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1.5">
               Bu başlık sadece sizin için, alıcı görmez
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="recipientEmail" className="block text-sm font-medium mb-2">
+              <label htmlFor="recipientEmail" className="block text-sm font-medium mb-2 text-gray-700">
                 Alıcı E-posta
               </label>
               <input
@@ -130,12 +130,12 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
                 type="email"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
-                className="input-field"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="ornek@email.com"
               />
             </div>
             <div>
-              <label htmlFor="recipientName" className="block text-sm font-medium mb-2">
+              <label htmlFor="recipientName" className="block text-sm font-medium mb-2 text-gray-700">
                 Alıcı Adı
               </label>
               <input
@@ -143,14 +143,14 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
                 type="text"
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
-                className="input-field"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Ahmet Yılmaz"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="mailSubject" className="block text-sm font-medium mb-2">
+            <label htmlFor="mailSubject" className="block text-sm font-medium mb-2 text-gray-700">
               Mail Konusu
             </label>
             <input
@@ -158,25 +158,25 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
               type="text"
               value={mailSubject}
               onChange={(e) => setMailSubject(e.target.value)}
-              className="input-field"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="Teklif Sunumu Hakkında"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1.5">
               Gönderdiğiniz mail'in konusunu buraya yazın
             </p>
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium mb-2">
+            <label htmlFor="notes" className="block text-sm font-medium mb-2 text-gray-700">
               Notlar (Opsiyonel)
             </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="input-field"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               placeholder="Bu mail hakkında notlarınız..."
-              rows={2}
+              rows={3}
             />
           </div>
 
@@ -184,14 +184,14 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary flex-1"
+              className="flex-1 px-6 py-3 border border-gray-200 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-all hover:scale-105"
             >
               İptal
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
+              className="flex-1 bg-gray-900 text-white px-6 py-3 rounded-full font-medium hover:bg-black transition-all hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 'Oluşturuluyor...'
@@ -205,6 +205,29 @@ export default function CreateMailModal({ userId, onClose, onMailCreated }: Crea
           </div>
         </form>
       </div>
+      
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
     </div>
   )
 }

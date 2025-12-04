@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import FloatingDots from '@/components/FloatingDots'
-import { Mail, Eye, ArrowRight } from 'lucide-react'
+import ParticleCanvas from '@/components/ParticleCanvas'
+import { ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -35,36 +35,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
-      <FloatingDots />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 bg-white">
+      <ParticleCanvas />
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 animate-fade-in-up">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-              <Eye className="w-6 h-6 text-white dark:text-black" />
+            <div className="relative w-10 h-10">
+              <div className="absolute inset-0 bg-blue-500 rounded-tr-lg rounded-bl-lg transform rotate-45 opacity-80"></div>
+              <div className="absolute inset-0 bg-red-500 rounded-full scale-50 mix-blend-multiply"></div>
             </div>
-            <h1 className="text-3xl font-bold">MailSight</h1>
+            <h1 className="text-3xl font-medium tracking-tight text-gray-800">
+              <span className="font-bold text-gray-500">Mail</span>Sight
+            </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600">
             E-postalarınızı takip edin
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="card">
-          <h2 className="text-2xl font-semibold mb-6">Giriş Yap</h2>
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg">
+          <h2 className="text-2xl font-semibold mb-6 text-gray-900">Giriş Yap</h2>
           
           {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+            <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700">
                 E-posta
               </label>
               <input
@@ -72,14 +75,14 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="ornek@email.com"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-700">
                 Şifre
               </label>
               <input
@@ -87,7 +90,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
                 required
               />
@@ -96,7 +99,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <Link
                 href="/auth/forgot-password"
-                className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
               >
                 Şifremi unuttum
               </Link>
@@ -105,7 +108,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="w-full bg-gray-900 text-white py-3 rounded-full font-medium hover:bg-black transition-all hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 'Giriş yapılıyor...'
@@ -119,12 +122,12 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-gray-600">
               Hesabınız yok mu?{' '}
             </span>
             <Link
               href="/auth/register"
-              className="font-medium text-black dark:text-white hover:underline"
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
               Kayıt Ol
             </Link>
@@ -135,12 +138,28 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors inline-flex items-center gap-1"
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-1"
           >
             ← Ana Sayfaya Dön
           </Link>
         </div>
       </div>
+      
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
     </div>
   )
 }
