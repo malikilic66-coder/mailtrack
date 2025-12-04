@@ -1,250 +1,316 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Eye, CheckCircle, Clock, TrendingUp, ArrowRight, Mail, Zap, Shield } from 'lucide-react'
-import FloatingDots from '@/components/FloatingDots'
+import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 
 export default function HomePage() {
-  return (
-    <div className="min-h-screen relative overflow-hidden">
-      <FloatingDots />
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
+    let animationFrameId: number
+    let particles: Particle[] = []
+    
+    let mouse = { x: -1000, y: -1000, radius: 200 }
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      initParticles()
+    }
+
+    class Particle {
+      x: number
+      y: number
+      baseVx: number
+      baseVy: number
+      vx: number
+      vy: number
+      friction: number
+      size: number
+      color: string
+      rotation: number
+      rotationSpeed: number
+      angle: number
+      angleSpeed: number
+
+      constructor() {
+        this.x = Math.random() * canvas.width
+        this.y = Math.random() * canvas.height
+        
+        this.baseVx = (Math.random() - 0.5) * 0.5
+        this.baseVy = (Math.random() - 0.5) * 0.5
+        
+        this.vx = this.baseVx
+        this.vy = this.baseVy
+        
+        this.friction = 0.96
+        
+        this.size = Math.random() * 3 + 1
+        this.color = this.getRandomColor()
+        this.rotation = Math.random() * Math.PI * 2
+        this.rotationSpeed = (Math.random() - 0.5) * 0.02
+        
+        this.angle = Math.random() * Math.PI * 2
+        this.angleSpeed = Math.random() * 0.02
+      }
+
+      getRandomColor() {
+        const colors = [
+          '#4285F4', // Google Blue
+          '#8AB4F8', // Light Blue
+          '#174EA6', // Dark Blue
+          '#BDC1C6', // Grey
+          '#E8F0FE', // Very Light Blue
+        ]
+        return colors[Math.floor(Math.random() * colors.length)]
+      }
+
+      update() {
+        const dx = mouse.x - this.x
+        const dy = mouse.y - this.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < mouse.radius) {
+          const force = (mouse.radius - distance) / mouse.radius
+          const forceDirectionX = dx / distance
+          const forceDirectionY = dy / distance
+          const maxForce = 3
+          
+          this.vx -= forceDirectionX * force * maxForce
+          this.vy -= forceDirectionY * force * maxForce
+        }
+
+        this.angle += this.angleSpeed
+        this.vx += Math.sin(this.angle) * 0.02
+        this.vy += Math.cos(this.angle) * 0.02
+
+        this.vx *= this.friction
+        this.vy *= this.friction
+        
+        if (Math.abs(this.vx) < Math.abs(this.baseVx)) this.vx += this.baseVx * 0.1
+        if (Math.abs(this.vy) < Math.abs(this.baseVy)) this.vy += this.baseVy * 0.1
+
+        this.x += this.vx
+        this.y += this.vy
+        this.rotation += this.rotationSpeed + (Math.abs(this.vx) + Math.abs(this.vy)) * 0.05
+
+        if (this.x < -50) this.x = canvas.width + 50
+        if (this.x > canvas.width + 50) this.x = -50
+        if (this.y < -50) this.y = canvas.height + 50
+        if (this.y > canvas.height + 50) this.y = -50
+      }
+
+      draw() {
+        if (!ctx) return
+        ctx.save()
+        ctx.translate(this.x, this.y)
+        ctx.rotate(this.rotation)
+        ctx.fillStyle = this.color
+        
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy)
+        ctx.globalAlpha = Math.min(0.8, 0.3 + speed * 0.1)
+
+        if (Math.random() > 0.5) {
+          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size)
+        } else {
+          ctx.fillRect(-this.size / 2, -this.size / 4, this.size, this.size / 2)
+        }
+        
+        ctx.restore()
+      }
+    }
+
+    const initParticles = () => {
+      particles = []
+      const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 1500)
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle())
+      }
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
       
-      {/* Navbar */}
-      <nav className="relative z-10 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-                <Eye className="w-5 h-5 text-white dark:text-black" />
-              </div>
-              <span className="text-xl font-bold">MailSight</span>
+      particles.forEach(p => {
+        p.update()
+        p.draw()
+      })
+
+      animationFrameId = requestAnimationFrame(animate)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.clientX
+      mouse.y = e.clientY
+    }
+
+    const handleMouseOut = () => {
+      mouse.x = -1000
+      mouse.y = -1000
+    }
+
+    window.addEventListener('resize', resizeCanvas)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseout', handleMouseOut)
+
+    resizeCanvas()
+    animate()
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseout', handleMouseOut)
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [])
+
+  return (
+    <div className="relative w-full min-h-screen bg-white text-gray-900 font-sans overflow-hidden">
+      
+      {/* Canvas Background */}
+      <canvas 
+        ref={canvasRef} 
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
+      />
+
+      {/* UI Layer */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        
+        {/* Navbar */}
+        <header className="w-full px-6 py-4 flex items-center justify-between max-w-7xl mx-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-2 cursor-pointer select-none">
+            <div className="relative w-6 h-6">
+              <div className="absolute inset-0 bg-blue-500 rounded-tr-lg rounded-bl-lg transform rotate-45 opacity-80"></div>
+              <div className="absolute inset-0 bg-red-500 rounded-full scale-50 mix-blend-multiply"></div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/auth/login" className="btn-secondary">
-                Giriş Yap
-              </Link>
-              <Link href="/auth/register" className="btn-primary">
-                Ücretsiz Başla
-              </Link>
+            <span className="text-xl font-medium tracking-tight text-gray-700">
+              <span className="font-bold text-gray-500">Mail</span>Sight
+            </span>
+          </div>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+            <a href="#features" className="hover:text-blue-600 transition-colors">Özellikler</a>
+            <a href="#pricing" className="hover:text-blue-600 transition-colors">Fiyatlandırma</a>
+            <a href="#guide" className="hover:text-blue-600 transition-colors">Rehber</a>
+            <Link href="/auth/login" className="hover:text-blue-600 transition-colors">Giriş</Link>
+          </nav>
+
+          {/* CTA & Mobile Menu */}
+          <div className="flex items-center gap-4">
+            <Link href="/auth/register" className="hidden md:flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 shadow-lg">
+              Ücretsiz Başla <ArrowRight className="w-4 h-4" />
+            </Link>
+            <button 
+              className="md:hidden text-gray-600"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </header>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 p-6 flex flex-col gap-4 shadow-xl animate-in slide-in-from-top-5 z-20">
+            <a href="#features" className="text-lg font-medium text-gray-700">Özellikler</a>
+            <a href="#pricing" className="text-lg font-medium text-gray-700">Fiyatlandırma</a>
+            <Link href="/auth/login" className="text-lg font-medium text-gray-700">Giriş</Link>
+            <div className="h-px bg-gray-200 w-full my-2"></div>
+            <Link href="/auth/register" className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center">
+              Ücretsiz Başla
+            </Link>
+          </div>
+        )}
+
+        {/* Hero Section */}
+        <main className="flex-grow flex flex-col items-center justify-center px-4 text-center mt-12 md:mt-0">
+          
+          {/* Small Logo Above Title */}
+          <div className="mb-8 animate-fade-in-up opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-8 h-8 relative">
+                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+                  <path d="M50 0 L100 100 L0 100 Z" fill="#4285F4" className="opacity-90"/>
+                  <circle cx="50" cy="65" r="20" fill="#EA4335" className="mix-blend-multiply"/>
+                  <path d="M50 0 L100 50 L50 100 L0 50 Z" fill="#FBBC05" className="mix-blend-overlay opacity-50"/>
+                </svg>
+              </div>
+              <span className="text-2xl font-medium text-gray-800">MailSight</span>
             </div>
           </div>
-        </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            E-postalarınızı
-            <br />
-            <span className="text-gray-600 dark:text-gray-400">takip edin</span>
+          {/* Main Headline */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight text-gray-900 leading-[1.1] mb-6 max-w-5xl mx-auto animate-fade-in-up opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+            E-postalarınızı <br className="hidden md:block"/>
+            <span className="text-gray-500">gerçek zamanlı takip edin</span>
           </h1>
-          
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-            Gönderdiğiniz e-postaların ne zaman, hangi cihazdan açıldığını öğrenin. 
-            Basit, hızlı ve güvenilir.
+
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10 animate-fade-in-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+            Gmail, Outlook ve tüm mail istemcileri ile uyumlu. 
+            Gönderdiğiniz e-postaların ne zaman, kim tarafından, hangi cihazdan açıldığını öğrenin.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link 
-              href="/auth/register" 
-              className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
-            >
+          {/* Buttons */}
+          <div className="flex flex-col md:flex-row items-center gap-4 mt-10 animate-fade-in-up opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+            <Link href="/auth/register" className="flex items-center gap-3 bg-[#1a1a1a] text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-black transition-all hover:-translate-y-1 shadow-xl hover:shadow-2xl group">
               5 Dakikada Başla
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link 
-              href="#features" 
-              className="btn-secondary text-lg px-8 py-4"
-            >
+            
+            <a href="#features" className="flex items-center gap-2 bg-gray-100 text-gray-800 px-8 py-4 rounded-full text-lg font-medium hover:bg-white hover:shadow-lg border border-transparent hover:border-gray-200 transition-all hover:-translate-y-1 group">
               Özellikleri Keşfet
-            </Link>
+              <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+            </a>
           </div>
 
           {/* Stats */}
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6">
-              <div className="text-4xl font-bold mb-2">5 dk</div>
-              <div className="text-gray-600 dark:text-gray-400">
-                Kurulum süresi
-              </div>
+          <div className="mt-16 grid grid-cols-3 gap-8 max-w-3xl mx-auto animate-fade-in-up opacity-0" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">5dk</div>
+              <div className="text-sm text-gray-500 mt-1">Kurulum</div>
             </div>
-            <div className="p-6">
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-gray-600 dark:text-gray-400">
-                Tespit oranı
-              </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">99.9%</div>
+              <div className="text-sm text-gray-500 mt-1">Tespit Oranı</div>
             </div>
-            <div className="p-6">
-              <div className="text-4xl font-bold mb-2">∞</div>
-              <div className="text-gray-600 dark:text-gray-400">
-                Sınırsız takip
-              </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">∞</div>
+              <div className="text-sm text-gray-500 mt-1">Sınırsız</div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section id="features" className="relative z-10 bg-gray-50 dark:bg-gray-800/50 py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Öne Çıkan Özellikler</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              E-posta takibini basit ve güçlü hale getiren özellikler
-            </p>
-          </div>
+        </main>
+        
+        {/* Footer Fade */}
+        <div className="fixed bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-20"></div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Anlık Bildirim</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                E-postanız açıldığı anda gerçek zamanlı bildirim alın. 
-                Hiçbir fırsatı kaçırmayın.
-              </p>
-            </div>
+      </div>
 
-            {/* Feature 2 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
-                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Detaylı İstatistik</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Cihaz türü, tarayıcı, konum ve zaman bilgilerini görüntüleyin.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Gizlilik Odaklı</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Verileriniz güvende. Sadece siz takip bilgilerinize erişebilirsiniz.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Zaman Çizelgesi</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                E-postanızın ne zaman, kaç kere okunduğunu görün.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Analitik Dashboard</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tüm e-postalarınızın performansını tek yerden yönetin.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mb-4">
-                <Mail className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Kolay Entegrasyon</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tek satır HTML kodu ile tüm e-posta istemcileriyle uyumlu.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="relative z-10 py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Nasıl Çalışır?</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              3 basit adımda e-posta takibi
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black text-2xl font-bold mx-auto mb-6">
-                1
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Kayıt Olun</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Ücretsiz hesap oluşturun ve dashboard'a erişin.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black text-2xl font-bold mx-auto mb-6">
-                2
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Pixel Kodu Alın</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Yeni izleme oluşturun ve özel tracking pixel kodunuzu kopyalayın.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black text-2xl font-bold mx-auto mb-6">
-                3
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Mailinize Ekleyin</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Kodu e-postanızın HTML kısmına yapıştırın ve gönderin!
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative z-10 bg-black dark:bg-white py-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white dark:text-black mb-6">
-            Hazır mısınız?
-          </h2>
-          <p className="text-xl text-gray-300 dark:text-gray-600 mb-10">
-            Bugün başlayın, e-postalarınızın etkisini ölçün.
-          </p>
-          <Link 
-            href="/auth/register" 
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-black text-black dark:text-white rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-900 transition-all duration-200 shadow-lg text-lg"
-          >
-            Ücretsiz Başla
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-gray-100 dark:border-gray-800 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-                <Eye className="w-4 h-4 text-white dark:text-black" />
-              </div>
-              <span className="font-bold">MailSight</span>
-            </div>
-            
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              © 2025 MailSight. Tüm hakları saklıdır.
-            </div>
-          </div>
-        </div>
-      </footer>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
     </div>
   )
 }
